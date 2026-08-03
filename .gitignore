@@ -1,0 +1,7 @@
+work/
+.direnv/
+.claude/
+.superpowers/
+bazel-*
+MODULE.bazel.lock
+.bazelrc.local

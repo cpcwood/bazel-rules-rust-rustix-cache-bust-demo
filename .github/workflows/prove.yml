@@ -1,0 +1,50 @@
+name: prove
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: DeterminateSystems/nix-installer-action@v22
+
+      # actions/cache's `path:` is resolved by the action itself, which expands
+      # a leading `~`. prove.sh's PROVE_REPOSITORY_CACHE is a plain env value
+      # that a shell never gets to expand, so it is set with $HOME inline in
+      # the run step below instead of a literal `~` here.
+      - name: Prepare repository cache directory
+        run: mkdir -p "$HOME/.cache/bazel-repository-cache"
+
+      # Downloads only. Bazel's repository cache never holds action outputs,
+      # so restoring it cannot influence which actions hit or miss.
+      - uses: actions/cache@v6.1.0
+        with:
+          path: ~/.cache/bazel-repository-cache
+          key: bazel-repo-${{ hashFiles('demo/MODULE.bazel', 'demo/cargo-bazel-lock.json') }}
+          restore-keys: bazel-repo-
+
+      - name: Minimal reproduction (no Bazel)
+        run: nix develop -c ./minimal-repro.sh
+
+      - name: Full proof (Bazel, four workspaces)
+        run: PROVE_REPOSITORY_CACHE="$HOME/.cache/bazel-repository-cache" nix develop -c ./prove.sh
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: logs
+          path: work/*.log
+          if-no-files-found: ignore

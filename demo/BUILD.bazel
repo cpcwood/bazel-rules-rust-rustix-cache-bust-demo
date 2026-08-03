@@ -1,0 +1,16 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
+
+rust_library(
+    name = "mylib",
+    srcs = ["src/lib.rs"],
+    edition = "2021",
+    visibility = ["//visibility:public"],
+    deps = ["@crates//:rustix"],
+)
+
+rust_binary(
+    name = "myapp",
+    srcs = ["src/main.rs"],
+    edition = "2021",
+    deps = [":mylib"],
+)

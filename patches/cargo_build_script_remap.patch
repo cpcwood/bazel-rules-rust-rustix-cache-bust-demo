@@ -1,0 +1,13 @@
+diff --git a/cargo/private/cargo_build_script.bzl b/cargo/private/cargo_build_script.bzl
+index b1c630a86..0e8dc8d49 100644
+--- a/cargo/private/cargo_build_script.bzl
++++ b/cargo/private/cargo_build_script.bzl
+@@ -528,6 +528,8 @@ def _cargo_build_script_impl(ctx):
+     env["CARGO_ENCODED_RUSTFLAGS"] = "\\x1f".join([
+         # Allow build scripts to locate the generated sysroot
+         "--sysroot=${{pwd}}/{}".format(toolchain.sysroot),
++        # Keep build scripts from baking the exec root into their output
++        "--remap-path-prefix=${pwd}=.",
+     ] + ctx.attr.rustc_flags)
+ 
+     for f in ctx.attr.crate_features:

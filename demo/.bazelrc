@@ -1,0 +1,5 @@
+# Never let a stale default output base be picked up. prove.sh always passes
+# --output_base explicitly, and the path it picks is the variable under test.
+build --show_result=0
+
+try-import %workspace%/.bazelrc.local
